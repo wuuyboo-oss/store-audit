@@ -29,6 +29,7 @@
         <button id="run-url" class="primary">Run the audit</button>
         <button id="demo">Try with a demo store</button>
       </div>
+      <p class="hint">About the demo: it checks a fictional store using its homepage <em>plus</em> a product page, robots.txt and sitemap. Paste mode scores the homepage only, so the two scores differ by design.</p>
       <p id="url-status" class="status"></p>
       <p class="hint">Direct fetching works only if the store allows cross-site requests from your browser. Many stores block it — that is normal, and it is why the Paste HTML tab exists. Nothing is uploaded anywhere either way.</p>
     </div>
@@ -79,6 +80,7 @@
     </ol>
     <h3>Honest limits</h3>
     <ul>
+      <li>The demo store scores 56/100 because it is checked with its homepage, a product page, robots.txt and sitemap together. Paste mode only sees the homepage, so pasting the demo's homepage alone scores lower — by design, not by error.</li>
       <li>This is a <em>lite</em> checker. It cannot fully verify agent checkout (UCP/ACP) from a static page, and it cannot fetch stores that block cross-site requests — use the Paste HTML tab in that case.</li>
       <li>A good score does not guarantee ChatGPT will recommend you; a bad score means it very likely cannot find you at all.</li>
       <li>Traffic figures on this page are from Adobe Analytics (via Verlua, Aug 2026) and Profound (Sep 2026, vendor-run prompts, not real shopper sessions).</li>

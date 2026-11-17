@@ -1,0 +1,11 @@
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+Sitemap: https://YOURSTORE.COM/sitemap.xml
+Sitemap: https://YOURSTORE.COM/products.xml

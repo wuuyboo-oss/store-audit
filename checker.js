@@ -36,6 +36,18 @@ var SELF_CHECK_QUESTIONS = [
 
 function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 
+/* Map a self-check radio value to a tri-state answer.
+ * 'yes' -> true, 'no' -> false, 'unknown' (or anything else / missing) -> null.
+ * null means "no data" and must yield an UNKNOWN check, never a FAIL.
+ * (Bug fixed 2026-11-18: the browser glue previously read 'unknown' as
+ * false, so unanswered questions were scored as failures.)
+ */
+function parseAnswerValue(v) {
+  if (v === 'yes') return true;
+  if (v === 'no') return false;
+  return null;
+}
+
 function extractJsonLd(html) {
   var out = [];
   var re = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
@@ -149,6 +161,8 @@ function runChecks(inputs) {
 
   function push(id, status, points, detail, fix) {
     var meta = CHECKS[id - 1];
+    // Items with no data are UNKNOWN, never FAIL: label them as such.
+    if (status === 'unknown') detail = 'Not checked — no data provided. ' + detail;
     results.push({ id: id, name: meta.name, weight: meta.weight, status: status, points: points, detail: detail, fix: fix || null });
     if (status !== 'pass' && fix) fixes.push({ check: meta.name, priority: status === 'fail' ? 'high' : 'medium', fix: fix });
   }
@@ -305,8 +319,11 @@ function runChecks(inputs) {
   var ucp = /universal commerce protocol|\bUCP\b|agentic commerce protocol|\bACP\b|agent.?checkout|chatgpt.*checkout|buy.*chatgpt/i.test(hp);
   var checkoutLink = hasLink(hp, 'checkout|cart');
   var httpsOk = !inputs.homepageUrl || inputs.homepageUrl.indexOf('https://') === 0;
-  if (inputs.answers && inputs.answers.hub === true && (wallet || checkoutLink)) {
-    push(12, 'pass', 8, 'Store is submitted to OpenAI Business Hub and offers express checkout. (Static checks cannot fully verify agent checkout — confirm a test purchase via an assistant.)');
+  // A confirmed Business Hub / merchant onboarding submission is the real
+  // agent-checkout signal: it earns full marks. Static checks cannot fully
+  // verify agent checkout, so the detail says so plainly.
+  if (inputs.answers && inputs.answers.hub === true) {
+    push(12, 'pass', 8, 'Store is submitted to OpenAI Business Hub / ChatGPT merchant onboarding (self-check). Static checks cannot fully verify agent checkout — confirm a test purchase via an assistant.');
   } else if (wallet && checkoutLink && httpsOk) {
     push(12, 'warn', 4, 'Express wallets detected, but agent-checkout support (UCP/ACP) could not be verified from the page. This check cannot be fully proven statically.', 'Submit your store to OpenAI\'s Business Hub and confirm your checkout supports agent-initiated purchases; see the fix kit.');
   } else if (inputs.answers && inputs.answers.wallet === true) {
@@ -360,7 +377,7 @@ function textReport(storeUrl, result) {
 
 /* ---------------- Browser glue ---------------- */
 if (typeof window !== 'undefined') {
-  window.StoreAudit = { runChecks: runChecks, CHECKS: CHECKS, SELF_CHECK_QUESTIONS: SELF_CHECK_QUESTIONS, verdict: verdict, textReport: textReport, firstProductUrl: firstProductUrl };
+  window.StoreAudit = { runChecks: runChecks, CHECKS: CHECKS, SELF_CHECK_QUESTIONS: SELF_CHECK_QUESTIONS, verdict: verdict, textReport: textReport, firstProductUrl: firstProductUrl, parseAnswerValue: parseAnswerValue };
 
   document.addEventListener('DOMContentLoaded', function () {
     var $ = function (id) { return document.getElementById(id); };
@@ -404,11 +421,24 @@ if (typeof window !== 'undefined') {
       $('results').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // Clear any previous result immediately, so a failed or new run never
+    // leaves an old score on screen that could be mistaken for the new one.
+    function clearResults() {
+      lastResult = null; lastUrl = '';
+      $('results').classList.add('hidden');
+      $('score-num').textContent = '–';
+      $('score-bar').style.width = '0%';
+      $('verdict').textContent = '';
+      $('checks').innerHTML = '';
+      $('fixes').innerHTML = '';
+      $('download').classList.add('hidden');
+    }
+
     function readAnswers() {
       var a = {};
       SELF_CHECK_QUESTIONS.forEach(function (q) {
         var el = document.querySelector('input[name="q-' + q.key + '"]:checked');
-        a[q.key] = el ? el.value === 'yes' : null;
+        a[q.key] = el ? parseAnswerValue(el.value) : null;
       });
       return a;
     }
@@ -428,13 +458,17 @@ if (typeof window !== 'undefined') {
     }
 
     $('run-url').addEventListener('click', async function () {
+      clearResults();
       var url = normaliseUrl($('store-url').value);
       if (!url) { $('url-status').textContent = 'Enter a store URL first.'; return; }
       $('url-status').textContent = 'Fetching ' + url + ' … (if this fails, your browser is blocking cross-site fetches — use the paste-HTML tab instead.)';
       var hp = await tryFetch(url + '/');
       if (!hp.ok) {
+        // No score is shown: results were cleared above and render() is not called.
         $('url-status').textContent = 'Could not fetch the store from this browser (CORS / network). Use the "Paste HTML" tab: view-source the homepage, copy it, paste it here — no data leaves your browser.';
         showTab('paste');
+        $('paste-url').value = url;
+        $('paste-status').textContent = 'Direct fetch was blocked for ' + url + ' — paste the homepage HTML below instead. Checks that need separate files (llms.txt, robots.txt, feed, sitemap) use your self-check answers.';
         return;
       }
       var inputs = { homepageHtml: hp.text, homepageUrl: url, answers: readAnswers() };
@@ -455,6 +489,7 @@ if (typeof window !== 'undefined') {
     });
 
     $('run-paste').addEventListener('click', function () {
+      clearResults();
       var html = $('paste-html').value;
       if (!html.trim()) { $('paste-status').textContent = 'Paste homepage HTML first.'; return; }
       var inputs = { homepageHtml: html, productHtml: html, answers: readAnswers() };
@@ -464,12 +499,14 @@ if (typeof window !== 'undefined') {
     });
 
     $('run-self').addEventListener('click', function () {
+      clearResults();
       var inputs = { homepageHtml: '', answers: readAnswers() };
       var result = runChecks(inputs);
       render(result, '');
     });
 
     $('demo').addEventListener('click', async function () {
+      clearResults();
       $('url-status').textContent = 'Loading the built-in demo store…';
       var hp = await tryFetch('demo-fixture.html');
       if (!hp.ok) { $('url-status').textContent = 'Demo fixture could not be loaded.'; return; }
@@ -515,5 +552,5 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { runChecks: runChecks, CHECKS: CHECKS, SELF_CHECK_QUESTIONS: SELF_CHECK_QUESTIONS, verdict: verdict, textReport: textReport, firstProductUrl: firstProductUrl, extractJsonLd: extractJsonLd };
+  module.exports = { runChecks: runChecks, CHECKS: CHECKS, SELF_CHECK_QUESTIONS: SELF_CHECK_QUESTIONS, verdict: verdict, textReport: textReport, firstProductUrl: firstProductUrl, extractJsonLd: extractJsonLd, parseAnswerValue: parseAnswerValue };
 }

@@ -10,11 +10,11 @@ Free lite checker + paid Fix Kit for non-Shopify stores (Etsy, WooCommerce, Squa
 | `style.css` | Checker styles |
 | `checker.js` | All 12 checks, scoring (0–100), fix list, text-report download. Pure logic + browser glue; Node-testable (`module.exports`) |
 | `demo-fixture.html` + `demo-fixture-data.json` | Built-in demo store (fictional candle shop). Scores **56/100** by design |
-| `test-checker.js` | Node verification — `node test-checker.js` (57 assertions, all passing) |
+| `test-checker.js` | Node verification — `node test-checker.js` (78 assertions, all passing) |
 | `kit/agent-ready-store-audit-kit.pdf` | Paid Fix Kit, 7 pages (12 checks + fixes, per-platform checklists, templates, 14-day plan) |
 | `kit/snippet-generator.html` | Interactive llms.txt + robots.txt generator (client-side only) |
 | `kit/llms-template.txt`, `kit/robots-template.txt`, `kit/product-jsonld-template.txt` | Copy-paste templates |
-| `kit/listing.md` | Gumroad listing copy + internal payout notes |
+| `kit/listing.md` | Dodo listing copy + payout notes |
 | `kit/build_kit.py` | ReportLab script that builds the PDF (WenQuanYi Micro Hei embedded) |
 
 ## The 12 checks (weights sum to 100)
@@ -30,6 +30,6 @@ Free lite checker + paid Fix Kit for non-Shopify stores (Etsy, WooCommerce, Squa
 
 ## Status
 
-- Built + verified 2026-11-17. NOT deployed (no GitHub Pages, no Gumroad listing yet).
+- Built 2026-11-17; deployed to GitHub Pages 2026-11-18: https://wuuyboo-oss.github.io/store-audit/ (main page + `kit/` incl. the snippet generator). Real-browser test 2026-11-18 02:01 found 5 issues (stale results on failed URL checks, paste-mode mislabelling, demo/paste score mismatch, self-check Q8 not wired, kit/ not deployed); all fixed 2026-11-18 and covered by tests.
 - Pricing: $29 one-time, launch $19 for the first 20 buyers.
-- Payout caveat: Gumroad payout for a mainland-China seller is unconfirmed (no local-bank payout for China; PayPal route unclear; no Visa-card payouts). Dodo Payments (Alipay payout) is the fallback — needs the seller's ID verification. Decide the payout route before listing.
+- Payout: Dodo Payments (Alipay payout), chosen 2026-11-17 — Gumroad is OUT (China payout unconfirmed, no PayPal account). Dodo onboarding submitted 2026-11-18 00:47, review pending (up to 72h). After approval: create the $29 product in the Dodo dashboard, upload `kit/agent-ready-store-audit-kit.zip`, paste the checkout link into `index.html` (replacing `REPLACE_WITH_YOUR_PRODUCT_ID`), redeploy.

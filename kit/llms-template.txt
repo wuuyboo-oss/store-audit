@@ -1,0 +1,26 @@
+# YOUR STORE NAME
+
+> One sentence describing what you sell and who it is for.
+
+## Store
+
+- Store URL: https://YOURSTORE.COM
+- Contact: YOUR EMAIL
+- Shipping: SHIPS FROM / TO, PROCESSING TIME
+- Returns: RETURN WINDOW AND TERMS IN ONE LINE
+
+## Bestsellers
+
+- PRODUCT NAME — one line: what it is, price, who it is for
+- PRODUCT NAME — one line
+- PRODUCT NAME — one line
+
+## Categories
+
+- CATEGORY: https://YOURSTORE.COM/category-url
+- CATEGORY: https://YOURSTORE.COM/category-url
+
+## Policies
+
+- Shipping: https://YOURSTORE.COM/shipping
+- Returns: https://YOURSTORE.COM/returns

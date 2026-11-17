@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>llms.txt + robots.txt Generator — Agent-Ready Store Audit Fix Kit</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1c2430; margin: 0; line-height: 1.6; background: #f7f8fa; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 26px; }
+  section { background: #fff; border: 1px solid #e3e7ec; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  input, textarea { width: 100%; padding: 9px 11px; border: 1px solid #c9d1da; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  pre { background: #101c2e; color: #dff0e6; padding: 14px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font-size: 13px; }
+  button { background: #0b6e4f; color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 15px; cursor: pointer; margin-right: 8px; }
+  button.ghost { background: #fff; color: #101c2e; border: 1px solid #c9d1da; }
+  .hint { color: #5a6675; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>llms.txt + robots.txt Generator</h1>
+  <p class="hint">Part of the Agent-Ready Store Audit Fix Kit. Fill in your details — everything stays in your browser — then copy the two files and upload them to your site root (llms.txt) and alongside it (robots.txt).</p>
+
+  <section>
+    <label for="name">Store name</label>
+    <input id="name" type="text" placeholder="Ember &amp; Oak Candle Co.">
+    <label for="url">Store URL (no trailing slash)</label>
+    <input id="url" type="text" placeholder="https://yourstore.com">
+    <label for="tagline">One sentence: what you sell, and for whom</label>
+    <input id="tagline" type="text" placeholder="Hand-poured soy candles for people who want their home to smell like a forest.">
+    <label for="email">Contact email</label>
+    <input id="email" type="text" placeholder="hello@yourstore.com">
+    <label for="shipping">Shipping summary (one line)</label>
+    <input id="shipping" type="text" placeholder="Ships worldwide from Oregon, USA; orders processed in 2 business days.">
+    <label for="returns">Returns summary (one line)</label>
+    <input id="returns" type="text" placeholder="30-day returns; buyer pays return shipping; refunds issued within 5 business days.">
+    <label for="bestsellers">Bestsellers (one per line: name — one line, price)</label>
+    <textarea id="bestsellers" rows="3" placeholder="Lavender Fields Candle — hand-poured soy candle, $24.00&#10;Cedarwood Candle — smoky cedar and pine, $26.00"></textarea>
+    <label for="cats">Categories (one per line: name — /path)</label>
+    <textarea id="cats" rows="2" placeholder="Candles — /shop/candles&#10;Gift sets — /shop/gift-sets"></textarea>
+    <label for="feed">Product feed URL (optional — your products.xml or Merchant Center feed)</label>
+    <input id="feed" type="text" placeholder="https://yourstore.com/products.xml">
+  </section>
+
+  <section>
+    <h2>llms.txt</h2>
+    <pre id="out-llms"></pre>
+    <button data-copy="out-llms">Copy llms.txt</button>
+    <button class="ghost" data-dl="out-llms" data-name="llms.txt">Download llms.txt</button>
+  </section>
+
+  <section>
+    <h2>robots.txt</h2>
+    <pre id="out-robots"></pre>
+    <button data-copy="out-robots">Copy robots.txt</button>
+    <button class="ghost" data-dl="out-robots" data-name="robots.txt">Download robots.txt</button>
+  </section>
+
+  <p class="hint">After uploading: open yourstore.com/llms.txt and yourstore.com/robots.txt in a browser to confirm they are live, then re-run the free checker.</p>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function clean(s) { return (s || '').trim(); }
+  function lines(id) { return clean($(id).value).split(/\n+/).map(clean).filter(Boolean); }
+  function render() {
+    var name = clean($('name').value) || 'YOUR STORE NAME';
+    var url = clean($('url').value).replace(/\/+$/, '') || 'https://YOURSTORE.COM';
+    var tag = clean($('tagline').value) || 'One sentence describing what you sell and who it is for.';
+    var email = clean($('email').value) || 'YOUR EMAIL';
+    var ship = clean($('shipping').value) || 'SHIPPING SUMMARY';
+    var ret = clean($('returns').value) || 'RETURNS SUMMARY';
+    var best = lines('bestsellers');
+    var cats = lines('cats');
+    var feed = clean($('feed').value);
+    var llms = '# ' + name + '\n\n> ' + tag + '\n\n## Store\n\n' +
+      '- Store URL: ' + url + '\n- Contact: ' + email + '\n' +
+      '- Shipping: ' + ship + '\n- Returns: ' + ret + '\n';
+    if (best.length) {
+      llms += '\n## Bestsellers\n\n' + best.map(function (b) { return '- ' + b; }).join('\n') + '\n';
+    }
+    if (cats.length) {
+      llms += '\n## Categories\n\n' + cats.map(function (c) {
+        var parts = c.split(/\s*[—\-]\s*/);
+        return '- ' + parts[0] + ': ' + url + (parts[1] || '');
+      }).join('\n') + '\n';
+    }
+    llms += '\n## Policies\n\n- Shipping: ' + url + '/shipping\n- Returns: ' + url + '/returns\n';
+    $('out-llms').textContent = llms;
+    var robots = 'User-agent: GPTBot\nAllow: /\n\nUser-agent: OAI-SearchBot\nAllow: /\n\nUser-agent: ChatGPT-User\nAllow: /\n\nSitemap: ' + url + '/sitemap.xml\n';
+    if (feed) robots += 'Sitemap: ' + feed + '\n';
+    $('out-robots').textContent = robots;
+  }
+  ['name', 'url', 'tagline', 'email', 'shipping', 'returns', 'bestsellers', 'cats', 'feed'].forEach(function (id) {
+    $(id).addEventListener('input', render);
+  });
+  document.querySelectorAll('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = $(b.getAttribute('data-copy')).textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { b.textContent = 'Copied!'; setTimeout(function () { b.textContent = 'Copy ' + b.getAttribute('data-copy').replace('out-', '') + '.txt'; }, 1500); });
+    });
+  });
+  document.querySelectorAll('[data-dl]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var blob = new Blob([$(b.getAttribute('data-dl')).textContent], { type: 'text/plain' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = b.getAttribute('data-name');
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  });
+  render();
+})();
+</script>
+</body>
+</html>
