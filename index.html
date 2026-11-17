@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-Ready Store Audit — Can AI shopping assistants find and buy from your store?</title>
+<meta name="description" content="Free lite checker: paste your store URL and see whether ChatGPT Shopping and other AI assistants can find your products, read your prices, and complete a purchase. No signup. Runs entirely in your browser.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <h1>Can AI assistants find — and buy from — your store?</h1>
+  <p class="lede">AI-referred traffic to US retail sites rose 62% year over year (Adobe Analytics, July 2026), and those visitors convert 60% better. But since mid-2026 most ChatGPT Shopping picks come from merchant feeds, not crawled pages — and roughly two in three tracked merchants lost at least a third of their ChatGPT visibility in July 2026 (Profound, Sep 2026). This free checker runs 12 tests on your store and tells you what to fix first.</p>
+  <p class="note">Built for stores <strong>not</strong> on Shopify — Etsy sellers, WooCommerce, Squarespace, and independent shops. No signup, no data leaves your browser: every check runs client-side.</p>
+</header>
+
+<main>
+  <section class="checker">
+    <div class="tabs">
+      <button id="tab-url" class="active">Check a URL</button>
+      <button id="tab-paste">Paste HTML</button>
+      <button id="tab-self">Self-check</button>
+    </div>
+
+    <div id="panel-url" class="panel">
+      <label for="store-url">Your store URL</label>
+      <input id="store-url" type="text" placeholder="https://yourstore.com" autocomplete="off">
+      <div class="row">
+        <button id="run-url" class="primary">Run the audit</button>
+        <button id="demo">Try with a demo store</button>
+      </div>
+      <p id="url-status" class="status"></p>
+      <p class="hint">Direct fetching works only if the store allows cross-site requests from your browser. Many stores block it — that is normal, and it is why the Paste HTML tab exists. Nothing is uploaded anywhere either way.</p>
+    </div>
+
+    <div id="panel-paste" class="panel hidden">
+      <label for="paste-url">Store URL (optional, for the report)</label>
+      <input id="paste-url" type="text" placeholder="https://yourstore.com" autocomplete="off">
+      <label for="paste-html">Paste your homepage HTML</label>
+      <textarea id="paste-html" rows="8" placeholder="Open your homepage, view source (Ctrl+U / Cmd+U), copy everything, paste it here."></textarea>
+      <p class="hint">For the most complete result, also paste a product page's HTML into the same box after the homepage HTML — the checker reads structured data from it.</p>
+      <div id="paste-questions"></div>
+      <button id="run-paste" class="primary">Run the audit from pasted HTML</button>
+      <p id="paste-status" class="status"></p>
+    </div>
+
+    <div id="panel-self" class="panel hidden">
+      <p>Answer what you can — the checker scores what you know and marks the rest unknown. Takes about 2 minutes.</p>
+      <div id="self-questions"></div>
+      <button id="run-self" class="primary">Score my answers</button>
+    </div>
+  </section>
+
+  <section id="results" class="results hidden">
+    <h2>Your score</h2>
+    <div class="score-line"><span id="score-num">–</span></div>
+    <div class="score-track"><div id="score-bar" class="score-bar" style="width:0%"></div></div>
+    <p id="verdict"></p>
+    <div id="checks"></div>
+    <div id="fixes"></div>
+    <button id="download" class="primary hidden">Download text report</button>
+  </section>
+
+  <section class="what">
+    <h2>What the 12 checks cover</h2>
+    <ol>
+      <li><strong>llms.txt present</strong> — the file AI assistants read first to learn what you sell.</li>
+      <li><strong>robots.txt allows AI shopping bots</strong> — GPTBot and OAI-SearchBot must be allowed to crawl you.</li>
+      <li><strong>Product structured data (JSON-LD)</strong> — machine-readable product info on every product page.</li>
+      <li><strong>Price + availability in structured data</strong> — without these, an assistant cannot recommend or sell the product.</li>
+      <li><strong>Product feed exists</strong> — most ChatGPT Shopping picks now come from feeds, not crawled pages.</li>
+      <li><strong>Sitemap lists products</strong> — the fallback discovery path when no feed exists.</li>
+      <li><strong>Products render without JavaScript</strong> — crawlers that do not run JS see an empty page otherwise.</li>
+      <li><strong>Shipping + returns pages exist</strong> — assistants will not recommend a store whose terms they cannot read.</li>
+      <li><strong>Reviews / ratings markup</strong> — AggregateRating is a ranking signal.</li>
+      <li><strong>Image alt text</strong> — how an assistant "sees" your product images.</li>
+      <li><strong>Canonical URLs</strong> — stops duplicate product URLs splitting your visibility.</li>
+      <li><strong>Agent-completable checkout</strong> — express wallets and agent-checkout support decide whether the sale can finish.</li>
+    </ol>
+    <h3>Honest limits</h3>
+    <ul>
+      <li>This is a <em>lite</em> checker. It cannot fully verify agent checkout (UCP/ACP) from a static page, and it cannot fetch stores that block cross-site requests — use the Paste HTML tab in that case.</li>
+      <li>A good score does not guarantee ChatGPT will recommend you; a bad score means it very likely cannot find you at all.</li>
+      <li>Traffic figures on this page are from Adobe Analytics (via Verlua, Aug 2026) and Profound (Sep 2026, vendor-run prompts, not real shopper sessions).</li>
+    </ul>
+  </section>
+
+  <section class="kit">
+    <h2>Want the fixes, not just the diagnosis?</h2>
+    <p>The <strong>Agent-Ready Store Audit Fix Kit ($29, launch price $19)</strong> is a one-time purchase: a full PDF guide explaining every check with copy-paste fixes, per-platform checklists for Etsy, WooCommerce and Squarespace, and an llms.txt + robots.txt snippet generator — fill in your store details, copy the files, done. No subscription.</p>
+    <!-- DODO CHECKOUT: replace the href below with your real Dodo payment link
+         (dashboard → Products → your kit → Copy checkout link).
+         It looks like https://checkout.dodopayments.com/buy/prod_xxxxxxxxxxxx
+         Until then this button goes nowhere useful — do not deploy with the placeholder. -->
+    <p><a class="primary button-link" href="https://checkout.dodopayments.com/buy/REPLACE_WITH_YOUR_PRODUCT_ID">Get the Fix Kit — $19 launch price</a></p>
+    <p class="fine" id="kit">Launch price $19 for the first 20 buyers, then $29. One-time payment, no subscription. Secure checkout by Dodo Payments; the kit (PDF + snippet generator) is delivered automatically after payment. The kit does not install anything on your store.</p>
+  </section>
+</main>
+
+<footer>
+  <p>Agent-Ready Store Audit — free lite checker. Not affiliated with OpenAI, Shopify, Etsy, WooCommerce, or Squarespace.</p>
+</footer>
+<script src="checker.js"></script>
+</body>
+</html>
